@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="DK_Upd_Build_WCF.Service1" CodeBehind="Service1.svc.cs" %>

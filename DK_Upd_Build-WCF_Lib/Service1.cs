@@ -1,0 +1,98 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+
+namespace DK_Upd_Build_WCF_Lib
+{
+   public partial class Service1 : IService1
+   {
+      public const int TYPERELEASE = 0;
+      public const int TYPEDEBUG = 1;
+
+      public const int ARCHWIN32 = 0;
+      public const int ARCHWIN64 = 1;
+      public const int ARCHLINUX32 = 2;
+      public const int ARCHLINUX64 = 3;
+      public const int ARCHFREEBSD = 4;
+      public const int ARCHOSX = 5;
+      public readonly List<string> ListArch = new List<string> { "Win32", "Win64", "Linux", "Linux_x64", "FreeBSD", "OSX" };
+      public readonly List<string> ListWin32Batches = new List<string> {"buildrelease32.bat", "builddebug32.bat" };
+      public readonly List<string> ListWin32BetaBatches = new List<string> { "buildrelease32.bat", "builddebug32.bat" };
+      public readonly List<string> ListWin64Batches = new List<string> { "buildrelease64.bat", "builddebug64.bat" };
+      public readonly List<string> ListWin64BetaBatches = new List<string> { "buildrelease64_beta.bat", "builddebug64_beta.bat" };
+
+      private bool GetBatch (int arch, int type, int beta, out string batchFile)
+      {
+         batchFile = string.Empty;
+
+         switch (arch)
+         {
+            case ARCHWIN32:
+               if (beta > 0)
+               {
+                  batchFile = ListWin32BetaBatches[type];
+               }
+               else
+               {
+                  batchFile = ListWin32Batches[type];
+               }
+               return true;
+
+            case ARCHWIN64:
+               if (beta > 0)
+               {
+                  batchFile = ListWin64BetaBatches[type];
+               }
+               else
+               {
+                  batchFile = ListWin64Batches[type];
+               }
+               return true;
+
+            default:
+               return false;
+         }
+      }
+
+      public bool StartBuild (int arch, int type, int beta)
+      {
+         try
+         {
+            string batchFile;
+
+            if (GetBatch(arch, type, beta, out batchFile) == false)
+            {
+               return false;
+            }
+
+            using (Process batch = new Process())
+            {
+               batch.StartInfo.FileName = batchFile;
+               batch.StartInfo.Arguments = string.Empty;
+               batch.StartInfo.WorkingDirectory = ""; /* FS: TODO */
+               batch.StartInfo.UseShellExecute = false;
+               batch.StartInfo.CreateNoWindow = true;
+               batch.EnableRaisingEvents = true;
+               batch.Start();
+
+               while (batch.HasExited == false)
+               {
+                  Thread.Sleep(250);
+               }
+            }
+
+            return true;
+         }
+         catch (Exception ex)
+         {
+            return false;
+         }
+      }
+
+      public string Ping()
+      {
+         return "Pong";
+      }
+   }
+}
