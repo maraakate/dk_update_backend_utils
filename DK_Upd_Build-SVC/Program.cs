@@ -1,6 +1,4 @@
-﻿using DK_Upd_Build_SVC.ServiceReference1;
-using System;
-using System.Reflection;
+﻿using System;
 using System.ServiceProcess;
 
 namespace DK_Upd_Build_SVC
