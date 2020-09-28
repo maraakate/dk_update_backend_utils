@@ -10,7 +10,7 @@ namespace DK_Upd_Build_SVC
          Service1 service = new Service1();
 
          // In interactive and debug mode ?
-         if (Environment.UserInteractive && System.Diagnostics.Debugger.IsAttached)
+         if (Environment.UserInteractive )//&& System.Diagnostics.Debugger.IsAttached)
          {
             _handler += new EventHandler(Handler);
             SetConsoleCtrlHandler(_handler, true);

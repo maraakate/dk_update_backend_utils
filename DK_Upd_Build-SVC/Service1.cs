@@ -1,13 +1,14 @@
-﻿using DK_Upd_Build_SVC.ServiceReference1;
-using System;
+﻿using System;
+using System.ServiceModel;
 using System.ServiceProcess;
 using System.Threading;
+using DK_Upd_Build_WCF_Lib;
 
 namespace DK_Upd_Build_SVC
 {
    public partial class Service1 : ServiceBase
    {
-      public static Service1Client clientService = null;
+      internal static ServiceHost myServiceHost = null;
 
       public Service1()
       {
@@ -17,8 +18,6 @@ namespace DK_Upd_Build_SVC
       protected override void OnStart(string[] args)
       {
          InitSVCConnection();
-
-         Console.Write("{0}: {1}\n", DateTime.Now, clientService.Ping());
       }
 
       protected override void OnStop()
@@ -41,34 +40,20 @@ namespace DK_Upd_Build_SVC
 
       private static void InitSVCConnection()
       {
-         TimeSpan timeout = new TimeSpan(0, 0, 20); /* FS: FIXME: This doesn't actually work... */
+         if (myServiceHost != null)
+            myServiceHost.Close();
 
-      retry:
-         try
-         {
-            if (clientService != null)
-            {
-               clientService.Abort();
-            }
-
-            clientService = new Service1Client();
-            clientService.InnerChannel.Open(timeout);
-            Program.WriteMessage("Connected to service.\n");
-         }
-         catch (Exception Ex)
-         {
-            Program.WriteMessage("Unable to connect to the Daikatana Build Service.  Reason: {0}", Ex.Message);
-            goto retry;
-         }
+         myServiceHost = new ServiceHost(typeof(DK_Upd_Build_WCF_Lib.Service1));
+         myServiceHost.Open();
       }
 
       private static void CloseSVCConnection()
       {
-         if (clientService == null)
+         if (myServiceHost == null)
             return;
 
-         clientService.Close();
-         clientService = null;
+         myServiceHost.Close();
+         myServiceHost = null;
       }
    }
 }
