@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 
 namespace DK_Upd_Build_WCF_Lib
@@ -18,7 +19,7 @@ namespace DK_Upd_Build_WCF_Lib
       public const int ARCHOSX = 5;
       public readonly List<string> ListArch = new List<string> { "Win32", "Win64", "Linux", "Linux_x64", "FreeBSD", "OSX" };
       public readonly List<string> ListWin32Batches = new List<string> {"buildrelease32.bat", "builddebug32.bat" };
-      public readonly List<string> ListWin32BetaBatches = new List<string> { "buildrelease32.bat", "builddebug32.bat" };
+      public readonly List<string> ListWin32BetaBatches = new List<string> { "buildrelease32_beta.bat", "builddebug32_beta.bat" };
       public readonly List<string> ListWin64Batches = new List<string> { "buildrelease64.bat", "builddebug64.bat" };
       public readonly List<string> ListWin64BetaBatches = new List<string> { "buildrelease64_beta.bat", "builddebug64_beta.bat" };
 
@@ -55,22 +56,30 @@ namespace DK_Upd_Build_WCF_Lib
          }
       }
 
-      public bool StartBuild (int arch, int type, int beta)
+      public string StartBuild (int arch, int type, int beta)
       {
          try
          {
-            string batchFile;
+            string batchFile, cwd;
+            clsConfigReader configReader;
 
             if (GetBatch(arch, type, beta, out batchFile) == false)
             {
-               return false;
+               return string.Format("Invalid options {0} {1} {2}\n", arch, type, beta);
             }
 
             using (Process batch = new Process())
             {
-               batch.StartInfo.FileName = batchFile;
+               configReader = new clsConfigReader("dk.config");
+               cwd = configReader.GetSetting("WorkingDirectory");
+               if (String.IsNullOrWhiteSpace(cwd))
+               {
+                  return string.Format("WorkingDirectory is null.\n");
+               }
+
+               batch.StartInfo.FileName = Path.Combine(cwd, batchFile);
                batch.StartInfo.Arguments = string.Empty;
-               batch.StartInfo.WorkingDirectory = ""; /* FS: TODO */
+               batch.StartInfo.WorkingDirectory = cwd;
                batch.StartInfo.UseShellExecute = false;
                batch.StartInfo.CreateNoWindow = true;
                batch.EnableRaisingEvents = true;
@@ -81,13 +90,13 @@ namespace DK_Upd_Build_WCF_Lib
                   Thread.Sleep(250);
                }
             }
-
-            return true;
          }
          catch (Exception ex)
          {
-            return false;
+            return string.Format("Failed: {0}\n", ex.Message);
          }
+
+         return "Success\n";
       }
 
       public string Ping()

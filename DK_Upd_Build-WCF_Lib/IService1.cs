@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.ServiceModel;
-using System.Text;
+﻿using System.ServiceModel;
 
 namespace DK_Upd_Build_WCF_Lib
 {
@@ -11,7 +6,7 @@ namespace DK_Upd_Build_WCF_Lib
    public interface IService1
    {
       [OperationContract]
-      bool StartBuild(int arch, int type, int beta);
+      string StartBuild(int arch, int type, int beta);
 
       [OperationContract]
       string Ping ();

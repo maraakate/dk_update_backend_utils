@@ -1,6 +1,8 @@
-﻿using System;
+﻿using DK_Upd_Build_WCF_Lib;
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 namespace DK_Upd_Build_SVC
 {
@@ -13,20 +15,16 @@ namespace DK_Upd_Build_SVC
 
       public static void InitFileLog()
       {
-#if FIXME
-         string windir;
-         string path;
+         string path, cwd;
+         clsConfigReader configReader;
 
-         windir = string.Empty;
-         if (helpers.GetEnvironmentVars.GetWinDir(ref windir) == false)
-         {
-            Console.Write("{0}:  Failed to get windir var.  Reasone:  {1}", GetFuncName().Name, helpers.GetEnvironmentVars.GetLastError());
-            return;
-         }
+         configReader = new clsConfigReader("dk.config");
+         cwd = configReader.GetSetting("WorkingDirectory");
 
-         path = Path.Combine(windir, "temp", "GGS", "Logs");
+         path = Path.Combine(cwd, "Logs");
          Directory.CreateDirectory(path);
-         logFileName = Path.Combine(path, String.Format("GGSPM_Updater_{0}_{1}_{2}.txt", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day));
+
+         logFileName = Path.Combine(path, String.Format("DK_Build_SVC_{0}_{1}_{2}.txt", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day));
 
          try
          {
@@ -34,9 +32,8 @@ namespace DK_Upd_Build_SVC
          }
          catch (Exception ex)
          {
-            Console.Write("{0}:  Failed to open logfile {1} for writing.  Reason:  {2}\n", GetFuncName().Name, logFileName, ex.Message);
+            Console.Write("{0}:  Failed to open logfile {1} for writing.  Reason:  {2}\n", MethodBase.GetCurrentMethod().Name, logFileName, ex.Message);
          }
-#endif
       }
 
       public static void InitEventLog()
