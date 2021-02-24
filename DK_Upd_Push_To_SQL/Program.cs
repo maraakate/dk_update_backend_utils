@@ -279,7 +279,7 @@ namespace DK_Upd_Push_To_SQL
 
          try
          {
-            clsEmail.Email(fromAddress, toAddress, sb.ToString(), subject, emailHost, emailUser, emailPass);
+            clsEmail.Email(fromAddress, toAddress, sb.ToString(), subject, null, emailHost, emailUser, emailPass);
          }
          catch (Exception ex)
          {
