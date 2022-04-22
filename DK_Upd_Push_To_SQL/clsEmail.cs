@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Mail;
+using System.Security;
 
 public class clsEmail
 {
@@ -29,17 +30,26 @@ public class clsEmail
             {
 
             }
+            smtp.UseDefaultCredentials = false;
             smtp.Port = 587;
             smtp.Host = host;
             smtp.EnableSsl = true;
-            smtp.UseDefaultCredentials = false;
             smtp.Credentials = new NetworkCredential(user, pass);
             smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+            ServicePointManager.ServerCertificateValidationCallback += (o, c, ch, er) => true;
             smtp.Send(message);
         }
         catch (Exception InnerEx)
         {
-            string message = "Unable to send email: ";
+            string message = String.Empty;
+            if (InnerEx.InnerException != null)
+            {
+                message = String.Format("Unable to send email: {0}\n", InnerEx.InnerException.Message);
+            }
+            else
+            {
+                message = String.Format("Unable to send email: {0}\n", InnerEx.Message);
+            }
             SettingsException OuterEx = new SettingsException(message, InnerEx);
             throw OuterEx;
         }
