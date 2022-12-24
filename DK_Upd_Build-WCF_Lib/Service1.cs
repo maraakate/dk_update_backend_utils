@@ -17,11 +17,14 @@ namespace DK_Upd_Build_WCF_Lib
         public const int ARCHLINUX64 = 3;
         public const int ARCHFREEBSD = 4;
         public const int ARCHOSX = 5;
-        public readonly List<string> ListArch = new List<string> { "Win32", "Win64", "Linux", "Linux_x64", "FreeBSD", "OSX" };
-        public readonly List<string> ListWin32Batches = new List<string> {"buildrelease32.bat", "builddebug32.bat" };
+        public const int ARCHDOS = 6;
+        public readonly List<string> ListArch = new List<string> { "Win32", "Win64", "Linux", "Linux_x64", "FreeBSD", "OSX", "DOS" };
+        public readonly List<string> ListWin32Batches = new List<string> {"buildrelease32.bat", "builddebug32.bat", "buildrelease32_full_no_newpak6.bat", "buildrelease32_full_with_newpak6.bat" };
         public readonly List<string> ListWin32BetaBatches = new List<string> { "buildrelease32_beta.bat", "builddebug32_beta.bat" };
-        public readonly List<string> ListWin64Batches = new List<string> { "buildrelease64.bat", "builddebug64.bat" };
+        public readonly List<string> ListWin64Batches = new List<string> { "buildrelease64.bat", "builddebug64.bat", "buildrelease64_full_no_newpak6.bat", "buildrelease64_full_with_newpak6.bat" };
         public readonly List<string> ListWin64BetaBatches = new List<string> { "buildrelease64_beta.bat", "builddebug64_beta.bat" };
+        public readonly List<string> ListDOSBatches = new List<string> { "buildreleaseDOS.bat", "builddebugDOS.bat" };
+        public readonly List<string> ListDOSBetaBatches = new List<string> { "buildreleaseDOS_beta.bat", "builddebugDOS_beta.bat" };
 
         private bool GetBatch (int arch, int type, int beta, out string batchFile)
         {
@@ -48,6 +51,17 @@ namespace DK_Upd_Build_WCF_Lib
                     else
                     {
                         batchFile = ListWin64Batches[type];
+                    }
+                    return true;
+
+                case ARCHDOS:
+                    if (beta > 0)
+                    {
+                        batchFile = ListDOSBetaBatches[type];
+                    }
+                    else
+                    {
+                        batchFile = ListDOSBatches[type];
                     }
                     return true;
 
