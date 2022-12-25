@@ -48,7 +48,6 @@ namespace DK_Upd_Push_To_SQL
         {
             StringBuilder Query;
             string binFileName, pdbFileName, msg;
-            clsSQL dbSQL;
             Collection<SqlParameter> Parameters;
             Guid guid;
 
@@ -76,59 +75,61 @@ namespace DK_Upd_Push_To_SQL
                 return;
             }
 
-            Query = new StringBuilder(4096);
-            dbSQL = new clsSQL(SQLConnStr);
-            Parameters = new Collection<SqlParameter>();
-
-            binFileName = Path.GetFileName(filenamewithpath);
-            pdbFileName = Path.GetFileName(pdbfilenamewithpath);
-
-            Query.AppendLine("INSERT INTO tblBuilds (id, date, arch, filename, changes)");
-            Query.AppendLine("VALUES (@guid, @date, @arch, @binFileName, '')");
-
-            Query.AppendLine("INSERT INTO tblDBSymbols (id, filename)");
-            Query.AppendLine("VALUES (@guid, @pdbFileName)");
-
-            Query.AppendLine("INSERT INTO tblBuildsBinary(id, data, md5)");
-            Query.AppendLine(String.Format("VALUES (@guid, (SELECT * FROM OPENROWSET(BULK N'{0}', SINGLE_BLOB) AS Executable), @md5)", filenamewithpath));
-
-            Query.AppendLine("insert into tblDBSymbolsBinary(id, data)");
-            Query.AppendLine(String.Format("VALUES (@guid, (SELECT * FROM OPENROWSET(BULK N'{0}', SINGLE_BLOB) AS Executable))", pdbfilenamewithpath));
-
-            Query.AppendLine("UPDATE tblLatest");
-            Query.AppendLine("SET id  = @guid");
-            Query.AppendLine("WHERE arch = @arch AND beta = @beta");
-
-            Parameters.Add(clsSQL.BuildSqlParameter("@arch", System.Data.SqlDbType.NVarChar, arch));
-            Parameters.Add(clsSQL.BuildSqlParameter("@date", System.Data.SqlDbType.Date, date));
-            Parameters.Add(clsSQL.BuildSqlParameter("@beta", System.Data.SqlDbType.Bit, beta));
-            Parameters.Add(clsSQL.BuildSqlParameter("@pdbFileName", System.Data.SqlDbType.NVarChar, pdbFileName));
-            Parameters.Add(clsSQL.BuildSqlParameter("@binFileName", System.Data.SqlDbType.NVarChar, binFileName));
-            Parameters.Add(clsSQL.BuildSqlParameter("@guid", System.Data.SqlDbType.UniqueIdentifier, guid));
-            Parameters.Add(clsSQL.BuildSqlParameter("@md5", System.Data.SqlDbType.NVarChar, md5Hash));
-
-            try
+            using (clsSQL dbSQL = new clsSQL(SQLConnStr))
             {
-                if (!dbSQL.Query(Query.ToString(), Parameters.ToArray()))
+                Query = new StringBuilder(4096);
+                Parameters = new Collection<SqlParameter>();
+
+                binFileName = Path.GetFileName(filenamewithpath);
+                pdbFileName = Path.GetFileName(pdbfilenamewithpath);
+
+                Query.AppendLine("INSERT INTO tblBuilds (id, date, arch, filename, changes)");
+                Query.AppendLine("VALUES (@guid, @date, @arch, @binFileName, '')");
+
+                Query.AppendLine("INSERT INTO tblDBSymbols (id, filename)");
+                Query.AppendLine("VALUES (@guid, @pdbFileName)");
+
+                Query.AppendLine("INSERT INTO tblBuildsBinary(id, data, md5)");
+                Query.AppendLine(String.Format("VALUES (@guid, (SELECT * FROM OPENROWSET(BULK N'{0}', SINGLE_BLOB) AS Executable), @md5)", filenamewithpath));
+
+                Query.AppendLine("insert into tblDBSymbolsBinary(id, data)");
+                Query.AppendLine(String.Format("VALUES (@guid, (SELECT * FROM OPENROWSET(BULK N'{0}', SINGLE_BLOB) AS Executable))", pdbfilenamewithpath));
+
+                Query.AppendLine("UPDATE tblLatest");
+                Query.AppendLine("SET id  = @guid");
+                Query.AppendLine("WHERE arch = @arch AND beta = @beta");
+
+                Parameters.Add(clsSQL.BuildSqlParameter("@arch", System.Data.SqlDbType.NVarChar, arch));
+                Parameters.Add(clsSQL.BuildSqlParameter("@date", System.Data.SqlDbType.Date, date));
+                Parameters.Add(clsSQL.BuildSqlParameter("@beta", System.Data.SqlDbType.Bit, beta));
+                Parameters.Add(clsSQL.BuildSqlParameter("@pdbFileName", System.Data.SqlDbType.NVarChar, pdbFileName));
+                Parameters.Add(clsSQL.BuildSqlParameter("@binFileName", System.Data.SqlDbType.NVarChar, binFileName));
+                Parameters.Add(clsSQL.BuildSqlParameter("@guid", System.Data.SqlDbType.UniqueIdentifier, guid));
+                Parameters.Add(clsSQL.BuildSqlParameter("@md5", System.Data.SqlDbType.NVarChar, md5Hash));
+
+                try
                 {
-                    msg = String.Format("{0}: Failed Query: {1}\n", MethodBase.GetCurrentMethod().Name, dbSQL.LastErrorMessage);
-                    Log(msg);
-                    SendEmail(String.Format("Daikatana Update - ERROR {0}", (int)ErrorCodes.ErrorSQLQuery), msg);
-                    System.Environment.Exit((int)ErrorCodes.ErrorSQLQuery);
-                    return;
-                }
+                    if (!dbSQL.Query(Query.ToString(), Parameters.ToArray()))
+                    {
+                        msg = String.Format("{0}: Failed Query: {1}\n", MethodBase.GetCurrentMethod().Name, dbSQL.LastErrorMessage);
+                        Log(msg);
+                        SendEmail(String.Format("Daikatana Update - ERROR {0}", (int)ErrorCodes.ErrorSQLQuery), msg);
+                        System.Environment.Exit((int)ErrorCodes.ErrorSQLQuery);
+                        return;
+                    }
 
-                msg = String.Format("Success!  ID: {0}\n", guid.ToString());
-                Log(msg);
-                SendEmail("Daikatana Update - SUCCESS", msg);
-                PushToFTP();
-            }
-            catch (Exception ex)
-            {
-                msg = String.Format("{0}: Failed: {1}\n", MethodBase.GetCurrentMethod().Name, ex.Message);
-                Log(msg);
-                SendEmail(String.Format("Daikatana Update - FAILED {0}", (int)ErrorCodes.ErrorSQLQuery), msg);
-                System.Environment.Exit((int)ErrorCodes.ErrorSQLQuery);
+                    msg = String.Format("Success!  ID: {0}\n", guid.ToString());
+                    Log(msg);
+                    SendEmail("Daikatana Update - SUCCESS", msg);
+                    PushToFTP();
+                }
+                catch (Exception ex)
+                {
+                    msg = String.Format("{0}: Failed: {1}\n", MethodBase.GetCurrentMethod().Name, ex.Message);
+                    Log(msg);
+                    SendEmail(String.Format("Daikatana Update - FAILED {0}", (int)ErrorCodes.ErrorSQLQuery), msg);
+                    System.Environment.Exit((int)ErrorCodes.ErrorSQLQuery);
+                }
             }
         }
 
@@ -274,14 +275,14 @@ namespace DK_Upd_Push_To_SQL
                     }
 
                     emailUser = cfgReader.GetSetting("emailUser");
-                    if (String.IsNullOrWhiteSpace(emailHost))
+                    if (String.IsNullOrWhiteSpace(emailUser))
                     {
                         Log("{0}: emailUser is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.EmailUserNull);
                     }
 
                     emailPass = cfgReader.GetSetting("emailPass");
-                    if (String.IsNullOrWhiteSpace(emailHost))
+                    if (String.IsNullOrWhiteSpace(emailPass))
                     {
                         Log("{0}: emailPass is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.EmailPassNull);
@@ -353,6 +354,7 @@ namespace DK_Upd_Push_To_SQL
                 return;
 
             StringBuilder sb = new StringBuilder(4096);
+            string[] attachments = { };
 
             sb.AppendLine("Daikatana Build Parameters");
             sb.AppendLine("--------------------------");
@@ -368,7 +370,7 @@ namespace DK_Upd_Push_To_SQL
 
             try
             {
-                clsEmail.Email(fromAddress, toAddress, sb.ToString(), subject, null, emailHost, emailUser, emailPass);
+                clsEmail.Email(fromAddress, toAddress, sb.ToString(), subject, attachments, emailHost, emailUser, emailPass);
             }
             catch (Exception ex)
             {
@@ -383,7 +385,9 @@ namespace DK_Upd_Push_To_SQL
 
             try
             {
-                clsEmail.Email(fromAddress, toAddress, "DK Updater test\n", "DK Updater Test", null, emailHost, emailUser, emailPass);
+                string[] attachments = { };
+
+                clsEmail.Email(fromAddress, toAddress, "DK Updater test\n", "DK Updater Test", attachments, emailHost, emailUser, emailPass);
             }
             catch (Exception ex)
             {

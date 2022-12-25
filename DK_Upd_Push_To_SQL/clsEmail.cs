@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Mail;
-using System.Security;
 
 public class clsEmail
 {
@@ -9,35 +8,37 @@ public class clsEmail
     {
         try
         {
-            MailMessage message = new MailMessage();
-            SmtpClient smtp = new SmtpClient();
-            message.From = fromAddr;
-            message.To.Add(new MailAddress(toAddr));
-            message.Subject = subject;
-            message.IsBodyHtml = false; //to make message body as html
-            message.Priority = MailPriority.High;
-            message.Body = body;
-            try
+            using (SmtpClient smtp = new SmtpClient())
             {
-                int i = 0;
-                foreach (string attachment in attachments)
+                MailMessage message = new MailMessage();
+                message.From = fromAddr;
+                message.To.Add(new MailAddress(toAddr));
+                message.Subject = subject;
+                message.IsBodyHtml = false; //to make message body as html
+                message.Priority = MailPriority.High;
+                message.Body = body;
+                try
                 {
-                    message.Attachments.Insert(i, new Attachment(attachment));
-                    i++;
+                    int i = 0;
+                    foreach (string attachment in attachments)
+                    {
+                        message.Attachments.Insert(i, new Attachment(attachment));
+                        i++;
+                    }
                 }
-            }
-            catch
-            {
+                catch
+                {
 
+                }
+                smtp.UseDefaultCredentials = false;
+                smtp.Port = 587;
+                smtp.Host = host;
+                smtp.EnableSsl = true;
+                smtp.Credentials = new NetworkCredential(user, pass);
+                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                ServicePointManager.ServerCertificateValidationCallback += (o, c, ch, er) => true;
+                smtp.Send(message);
             }
-            smtp.UseDefaultCredentials = false;
-            smtp.Port = 587;
-            smtp.Host = host;
-            smtp.EnableSsl = true;
-            smtp.Credentials = new NetworkCredential(user, pass);
-            smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
-            ServicePointManager.ServerCertificateValidationCallback += (o, c, ch, er) => true;
-            smtp.Send(message);
         }
         catch (Exception InnerEx)
         {
