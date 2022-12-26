@@ -32,17 +32,13 @@ namespace DK_Upd_Push_To_SQL
         private static bool useFtp = false;
         private static string ftpExe, ftpAddress, ftpPort, ftpUser, ftpPass, ftpDirectory;
 
-        public static readonly int ARCHWIN32 = 0;
-        public static readonly int ARCHWIN64 = 1;
-        public static readonly int ARCHLINUX32 = 2;
-        public static readonly int ARCHLINUX64 = 3;
-        public static readonly int ARCHFREEBSD = 4;
-        public static readonly int ARCHOSX = 5;
         public static readonly List<string> ListArch = new List<string> { "Win32", "Win64", "Linux", "Linux_x64", "FreeBSD", "OSX" };
         public static readonly List<string> ListWin32Files = new List<string> { "dk_win32.txt", "dk_win32.md5" };
         public static readonly List<string> ListWin32BetaFiles = new List<string> { "dk_win32_beta.txt", "dk_win32_beta.md5" };
         public static readonly List<string> ListWin64Files = new List<string> { "dk_win64.txt", "dk_win64.md5" };
         public static readonly List<string> ListWin64BetaFiles = new List<string> { "dk_win64_beta.txt", "dk_win64_beta.md5" };
+        public static readonly List<string> ListDOSFiles = new List<string> { "dk_dos.txt", "dk_dos.md5" };
+        public static readonly List<string> ListDOSBetaFiles = new List<string> { "dk_dos_beta.txt", "dk_dos_beta.md5" };
 
         static void PushToSQL()
         {
@@ -56,21 +52,21 @@ namespace DK_Upd_Push_To_SQL
 
             if (String.IsNullOrWhiteSpace(filenamewithpath))
             {
-                Log("{0}: filenamewithpath is null.\n", MethodBase.GetCurrentMethod().Name);
+                Log("{0}: filenamewithpath is null.\r\n", MethodBase.GetCurrentMethod().Name);
                 System.Environment.Exit((int)ErrorCodes.NullFileNamePath);
                 return;
             }
 
             if (String.IsNullOrWhiteSpace(pdbfilenamewithpath))
             {
-                Log("{0}: pdbfilenamewithpath is null.\n", MethodBase.GetCurrentMethod().Name);
+                Log("{0}: pdbfilenamewithpath is null.\r\n", MethodBase.GetCurrentMethod().Name);
                 System.Environment.Exit((int)ErrorCodes.NullPDBFilePath);
                 return;
             }
 
             if (String.IsNullOrWhiteSpace(arch))
             {
-                Log("{0}: arch is null.\n", MethodBase.GetCurrentMethod().Name);
+                Log("{0}: arch is null.\r\n", MethodBase.GetCurrentMethod().Name);
                 System.Environment.Exit((int)ErrorCodes.NullArch);
                 return;
             }
@@ -111,21 +107,21 @@ namespace DK_Upd_Push_To_SQL
                 {
                     if (!dbSQL.Query(Query.ToString(), Parameters.ToArray()))
                     {
-                        msg = String.Format("{0}: Failed Query: {1}\n", MethodBase.GetCurrentMethod().Name, dbSQL.LastErrorMessage);
+                        msg = String.Format("{0}: Failed Query: {1}\r\n", MethodBase.GetCurrentMethod().Name, dbSQL.LastErrorMessage);
                         Log(msg);
                         SendEmail(String.Format("Daikatana Update - ERROR {0}", (int)ErrorCodes.ErrorSQLQuery), msg);
                         System.Environment.Exit((int)ErrorCodes.ErrorSQLQuery);
                         return;
                     }
 
-                    msg = String.Format("Success!  ID: {0}\n", guid.ToString());
+                    msg = String.Format("Success!  ID: {0}\r\n", guid.ToString());
                     Log(msg);
                     SendEmail("Daikatana Update - SUCCESS", msg);
                     PushToFTP();
                 }
                 catch (Exception ex)
                 {
-                    msg = String.Format("{0}: Failed: {1}\n", MethodBase.GetCurrentMethod().Name, ex.Message);
+                    msg = String.Format("{0}: Failed: {1}\r\n", MethodBase.GetCurrentMethod().Name, ex.Message);
                     Log(msg);
                     SendEmail(String.Format("Daikatana Update - FAILED {0}", (int)ErrorCodes.ErrorSQLQuery), msg);
                     System.Environment.Exit((int)ErrorCodes.ErrorSQLQuery);
@@ -171,7 +167,7 @@ namespace DK_Upd_Push_To_SQL
                         dateStr = args[i + 1];
                         if (dateStr.Length != 10)
                         {
-                            string msg = String.Format("{0}: Date string '{1}' is invalid length {2}.  Format is YYYY-MM-DD\n", MethodBase.GetCurrentMethod().Name, dateStr, dateStr.Length);
+                            string msg = String.Format("{0}: Date string '{1}' is invalid length {2}.  Format is YYYY-MM-DD\r\n", MethodBase.GetCurrentMethod().Name, dateStr, dateStr.Length);
                             Log(msg);
                             SendEmail(String.Format("Daikatana Update - ERROR {0}", (int)ErrorCodes.DateTimeInvalidLen), msg);
                             System.Environment.Exit((int)ErrorCodes.DateTimeInvalidLen);
@@ -205,7 +201,7 @@ namespace DK_Upd_Push_To_SQL
         {
             if (File.Exists(dkExePath) == false)
             {
-                string msg = String.Format("{0}: Can't locate file {1}.  Aborting.\n", MethodBase.GetCurrentMethod().Name, dkExePath);
+                string msg = String.Format("{0}: Can't locate file {1}.  Aborting.\r\n", MethodBase.GetCurrentMethod().Name, dkExePath);
                 Log(msg);
                 SendEmail(String.Format("Daikatana Update - ERROR {0}", (int)ErrorCodes.DKExeMissing), msg);
                 System.Environment.Exit((int)ErrorCodes.DKExeMissing);
@@ -214,7 +210,7 @@ namespace DK_Upd_Push_To_SQL
             md5Hash = md5.CreateMD5(File.ReadAllBytes(dkExePath));
             if (String.IsNullOrWhiteSpace(md5Hash))
             {
-                string msg = String.Format("{0}: MD5 Hash is null.  Aborting.\n", MethodBase.GetCurrentMethod().Name);
+                string msg = String.Format("{0}: MD5 Hash is null.  Aborting.\r\n", MethodBase.GetCurrentMethod().Name);
                 Log(msg);
                 SendEmail(String.Format("Daikatana Update - ERROR {0}", (int)ErrorCodes.NullMD5Hash), msg);
                 System.Environment.Exit((int)ErrorCodes.NullMD5Hash);
@@ -230,21 +226,21 @@ namespace DK_Upd_Push_To_SQL
                 SQLConnStr = cfgReader.GetSetting("SQLConnStr");
                 if (String.IsNullOrWhiteSpace(SQLConnStr))
                 {
-                    Log("{0}: SQLConnStr is null.  Aborting.\n", MethodBase.GetCurrentMethod().Name);
+                    Log("{0}: SQLConnStr is null.  Aborting.\r\n", MethodBase.GetCurrentMethod().Name);
                     System.Environment.Exit((int)ErrorCodes.NullSQLConnStr);
                 }
 
                 dkExePath = cfgReader.GetSetting("dkExePath");
                 if (String.IsNullOrWhiteSpace(dkExePath))
                 {
-                    Log("{0}: dkExePath is null.  Aborting.\n", MethodBase.GetCurrentMethod().Name);
+                    Log("{0}: dkExePath is null.  Aborting.\r\n", MethodBase.GetCurrentMethod().Name);
                     System.Environment.Exit((int)ErrorCodes.NullDKExePathStr);
                 }
 
                 dkPath = cfgReader.GetSetting("dkPath");
                 if (String.IsNullOrWhiteSpace(dkPath))
                 {
-                    Log("{0}: dkPath is null.  Aborting.\n", MethodBase.GetCurrentMethod().Name);
+                    Log("{0}: dkPath is null.  Aborting.\r\n", MethodBase.GetCurrentMethod().Name);
                     System.Environment.Exit((int)ErrorCodes.NulldkPathStr);
                 }
 
@@ -256,35 +252,35 @@ namespace DK_Upd_Push_To_SQL
                     fromAddress = new MailAddress(cfgReader.GetSetting("fromAddress"));
                     if (String.IsNullOrWhiteSpace(fromAddress.Address))
                     {
-                        Log("{0}: fromAdress is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: fromAdress is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.EmailFromAddrNull);
                     }
 
                     toAddress = cfgReader.GetSetting("toAddress");
                     if (String.IsNullOrWhiteSpace(toAddress))
                     {
-                        Log("{0}: toAddress is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: toAddress is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.EmailToAddrNull);
                     }
 
                     emailHost = cfgReader.GetSetting("emailHost");
                     if (String.IsNullOrWhiteSpace(emailHost))
                     {
-                        Log("{0}: emailHost is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: emailHost is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.EmailHostNull);
                     }
 
                     emailUser = cfgReader.GetSetting("emailUser");
                     if (String.IsNullOrWhiteSpace(emailUser))
                     {
-                        Log("{0}: emailUser is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: emailUser is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.EmailUserNull);
                     }
 
                     emailPass = cfgReader.GetSetting("emailPass");
                     if (String.IsNullOrWhiteSpace(emailPass))
                     {
-                        Log("{0}: emailPass is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: emailPass is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.EmailPassNull);
                     }
 
@@ -299,42 +295,42 @@ namespace DK_Upd_Push_To_SQL
                     ftpExe = cfgReader.GetSetting("ftpExe");
                     if (String.IsNullOrWhiteSpace(ftpExe))
                     {
-                        Log("{0}: ftpExe is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: ftpExe is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.FtpExeNull);
                     }
 
                     ftpAddress = cfgReader.GetSetting("ftpAddress");
                     if (String.IsNullOrWhiteSpace(ftpAddress))
                     {
-                        Log("{0}: ftpAddress is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: ftpAddress is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.FtpAddressNull);
                     }
 
                     ftpPort = cfgReader.GetSetting("ftpPort");
                     if (String.IsNullOrWhiteSpace(ftpPort))
                     {
-                        Log("{0}: ftpPort is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: ftpPort is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.FtpPortNull);
                     }
 
                     ftpUser = cfgReader.GetSetting("ftpUser");
                     if (String.IsNullOrWhiteSpace(ftpUser))
                     {
-                        Log("{0}: ftpUser is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: ftpUser is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.FtpUserNull);
                     }
 
                     ftpPass = cfgReader.GetSetting("ftpPass");
                     if (String.IsNullOrWhiteSpace(ftpPass))
                     {
-                        Log("{0}: ftpPass is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: ftpPass is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.FtpPassNull);
                     }
 
                     ftpDirectory = cfgReader.GetSetting("ftpDirectory");
                     if (String.IsNullOrWhiteSpace(ftpDirectory))
                     {
-                        Log("{0}: ftpDirectory is null.  Aborting\n", MethodBase.GetCurrentMethod().Name);
+                        Log("{0}: ftpDirectory is null.  Aborting\r\n", MethodBase.GetCurrentMethod().Name);
                         System.Environment.Exit((int)ErrorCodes.FtpDirectoryNull);
                     }
 
@@ -343,7 +339,7 @@ namespace DK_Upd_Push_To_SQL
             }
             catch (Exception ex)
             {
-                Log("{0}: Failed to parse config.  Reason: {1}\n", MethodBase.GetCurrentMethod().Name, ex.Message);
+                Log("{0}: Failed to parse config.  Reason: {1}\r\n", MethodBase.GetCurrentMethod().Name, ex.Message);
                 System.Environment.Exit((int)ErrorCodes.CfgReaderException);
             }
         }
@@ -406,133 +402,77 @@ namespace DK_Upd_Push_To_SQL
 
             if (arch.Equals("win32", StringComparison.OrdinalIgnoreCase))
             {
-                if (beta > 0)
-                {
-                    files.Add(ListWin32BetaFiles[0]);
-                    files.Add(ListWin32BetaFiles[1]);
+                files.Add(ListWin32BetaFiles[0]);
+                files.Add(ListWin32BetaFiles[1]);
 
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin32BetaFiles[1]), false))
-                    {
-                        sw.Write(md5Hash);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin32BetaFiles[0]), false))
-                    {
-                        string fileNoPath = Path.GetFileName(filenamewithpath);
-                        sw.Write(fileNoPath);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-                }
-                else
+                if (beta <= 0)
                 {
                     files.Add(ListWin32Files[0]);
                     files.Add(ListWin32Files[1]);
-                    files.Add(ListWin32BetaFiles[0]);
-                    files.Add(ListWin32BetaFiles[1]);
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin32Files[1]), false))
-                    {
-                        sw.Write(md5Hash);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin32Files[0]), false))
-                    {
-                        string fileNoPath = Path.GetFileName(filenamewithpath);
-                        sw.Write(fileNoPath);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin32BetaFiles[1]), false))
-                    {
-                        sw.Write(md5Hash);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin32BetaFiles[0]), false))
-                    {
-                        string fileNoPath = Path.GetFileName(filenamewithpath);
-                        sw.Write(fileNoPath);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
                 }
-
-                files.Add(filenamewithpath);
-                files.Add(pdbfilenamewithpath);
             }
             else if (arch.Equals("win64", StringComparison.OrdinalIgnoreCase))
             {
-                if (beta > 0)
-                {
-                    files.Add(ListWin64BetaFiles[0]);
-                    files.Add(ListWin64BetaFiles[1]);
+                files.Add(ListWin64BetaFiles[0]);
+                files.Add(ListWin64BetaFiles[1]);
 
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin64BetaFiles[1]), false))
-                    {
-                        sw.Write(md5Hash);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin64BetaFiles[0]), false))
-                    {
-                        string fileNoPath = Path.GetFileName(filenamewithpath);
-                        sw.Write(fileNoPath);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-                }
-                else
+                if (beta <= 0)
                 {
                     files.Add(ListWin64Files[0]);
                     files.Add(ListWin64Files[1]);
-                    files.Add(ListWin64BetaFiles[0]);
-                    files.Add(ListWin64BetaFiles[1]);
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin64Files[1]), false))
-                    {
-                        sw.Write(md5Hash);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin64Files[0]), false))
-                    {
-                        string fileNoPath = Path.GetFileName(filenamewithpath);
-                        sw.Write(fileNoPath);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin64BetaFiles[1]), false))
-                    {
-                        sw.Write(md5Hash);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
-
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, ListWin64BetaFiles[0]), false))
-                    {
-                        string fileNoPath = Path.GetFileName(filenamewithpath);
-                        sw.Write(fileNoPath);
-                        sw.Write('\n');
-                        sw.Flush();
-                    }
                 }
+            }
+            else if (arch.Equals("dos", StringComparison.OrdinalIgnoreCase))
+            {
+                files.Add(ListDOSBetaFiles[0]);
+                files.Add(ListDOSBetaFiles[1]);
 
-                files.Add(filenamewithpath);
-                files.Add(pdbfilenamewithpath);
+                if (beta <= 0)
+                {
+                    files.Add(ListDOSFiles[0]);
+                    files.Add(ListDOSFiles[1]);
+                }
+            }
+            else
+            {
+                return;
             }
 
-            if (files.Count <= 0)
-                return;
+            files.Add(filenamewithpath);
+            files.Add(pdbfilenamewithpath);
+
+            using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, files[0]), false))
+            {
+                string fileNoPath = Path.GetFileName(filenamewithpath);
+                sw.Write(fileNoPath);
+                sw.Write('\n');
+                sw.Flush();
+            }
+
+            using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, files[1]), false))
+            {
+                sw.Write(md5Hash);
+                sw.Write('\n');
+                sw.Flush();
+            }
+
+            if (beta <= 0)
+            {
+                using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, files[2]), false))
+                {
+                    string fileNoPath = Path.GetFileName(filenamewithpath);
+                    sw.Write(fileNoPath);
+                    sw.Write('\n');
+                    sw.Flush();
+                }
+
+                using (StreamWriter sw = new StreamWriter(Path.Combine(dkPath, files[3]), false))
+                {
+                    sw.Write(md5Hash);
+                    sw.Write('\n');
+                    sw.Flush();
+                }
+            }
 
             foreach (string file in files)
             {
