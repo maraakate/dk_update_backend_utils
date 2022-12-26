@@ -65,6 +65,10 @@ namespace DK_Upd_Build_Client
 
                 Console.Write("Going to build {0} {1} {2}\n", archList[arch], typeList[type], beta > 0 ? "Beta" : "Non-Beta");
 
+                /* FS: Crud hack. */
+                if (arch == 2)
+                    arch = 6;
+
                 Console.Write(clientService.StartBuild(arch, type, beta));
                 clientService.Close();
             }
