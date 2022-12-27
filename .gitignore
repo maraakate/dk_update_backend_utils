@@ -48,8 +48,23 @@ Thumbs.db
 *.mov
 *.wmv
 
+*.d
+*.o
+bin/
 .vs/
 Debug/
 Release/
-Debug/
-Release/
+*.log
+*.ncb
+*.opt
+*.plg
+*.suo
+*.user
+*.aps
+*.clw
+*.pdb
+*.ilk
+out
+
+# PVS Studio
+*.PVS-Studio.*
