@@ -16,7 +16,7 @@ namespace ASPNET_MVC_Web.Controllers
         const int ALLPAKS = 3;
         const int LATESTPAKS = 4;
 
-        private bool GetList (ref ListViewModel model, int? type, int? arch, bool beta)
+        private bool GetList(ref ListViewModel model, int? type, int? arch, bool beta)
         {
             Collection<SqlParameter> Parameters;
             StringBuilder Query;
@@ -39,7 +39,6 @@ namespace ASPNET_MVC_Web.Controllers
             {
                 using (clsSQL dbSQL = new clsSQL(SQLConnStr))
                 {
-                    clsSQL dbSQLPDB = new clsSQL(SQLConnStr);
                     Query = new StringBuilder(4096);
                     Parameters = new Collection<SqlParameter>();
                     searchParams = string.Empty;
@@ -73,11 +72,11 @@ namespace ASPNET_MVC_Web.Controllers
                         case ALLPAKS:
                             model.ListType = eListType.PAKFiles;
                             Query.AppendLine("SELECT * FROM [Daikatana].[dbo].[tblPAKs] O");
-                            Query.AppendLine("ORDER BY [O].[id], [I].[date]");
+                            Query.AppendLine("ORDER BY [O].[id], [O].[date]");
                             break;
                         case LATESTPAKS:
                             model.ListType = eListType.PAKFiles;
-                            Query.AppendLine("SELECT [O].[id], [I].[date], [O].[type], [I].[filename] FROM [Daikatana].[dbo].[tblPAKsLatest] AS O");
+                            Query.AppendLine("SELECT [O].[id], [I].[date], [O].[type], [I].[filename], [O].[beta] FROM [Daikatana].[dbo].[tblPAKsLatest] O");
                             Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblPAKs] I on ([i].[id]=[O].[id])");
                             Query.AppendLine("ORDER BY [O].[id], [I].[date]");
                             break;
@@ -118,7 +117,7 @@ namespace ASPNET_MVC_Web.Controllers
                                 _arch = dbSQL.ReadString(2);
                                 filename_build = dbSQL.ReadString(3);
                                 _changes = dbSQL.ReadString(4);
-                                filename_pdb = GetPDB(ref dbSQLPDB, _id);
+                                filename_pdb = GetPDB(_id);
 
                                 model.BinaryList.Add(new clsBinary { id = _id, date = _date, arch = _arch, fileName = filename_build, fileNamePDB = filename_pdb, changes = _changes });
                                 break;
@@ -129,7 +128,7 @@ namespace ASPNET_MVC_Web.Controllers
                                 filename_build = dbSQL.ReadString(3);
                                 _changes = dbSQL.ReadString(4);
                                 _beta = dbSQL.ReadBool(5);
-                                filename_pdb = GetPDB(ref dbSQLPDB, _id);
+                                filename_pdb = GetPDB(_id);
 
                                 model.BinaryList.Add(new clsBinary { id = _id, date = _date, arch = _arch, fileName = filename_build, fileNamePDB = filename_pdb, changes = _changes, beta = _beta });
                                 break;
@@ -158,7 +157,7 @@ namespace ASPNET_MVC_Web.Controllers
             return true;
         }
 
-        private string GetArch (ref ListViewModel model, int? arch)
+        private string GetArch(ref ListViewModel model, int? arch)
         {
             if (model == null)
             {
@@ -178,7 +177,7 @@ namespace ASPNET_MVC_Web.Controllers
                     case ARCHDOS:
                         return String.Format("WHERE [O].[arch]='{0}'", ListArch[(int)arch]);
                     default:
-                        model.Message = String.Format("Invalid parameters for 'arch'.  Valid options are 0-{0}", ListArch.Count-1);
+                        model.Message = String.Format("Invalid parameters for 'arch'.  Valid options are 0-{0}", ListArch.Count - 1);
                         return string.Empty;
                 }
             }
@@ -186,7 +185,7 @@ namespace ASPNET_MVC_Web.Controllers
             return string.Empty;
         }
 
-        private void GetBeta (ref ListViewModel model, ref string searchParams, bool beta)
+        private void GetBeta(ref ListViewModel model, ref string searchParams, bool beta)
         {
             if (model == null)
             {
@@ -214,43 +213,46 @@ namespace ASPNET_MVC_Web.Controllers
             }
         }
 
-        private string GetPDB (ref clsSQL dbSQL, Guid id)
+        private string GetPDB(Guid id)
         {
             string filename_pdb;
             StringBuilder Query;
             Collection<SqlParameter> Parameters;
 
-            try
+            using (clsSQL dbSQL = new clsSQL(SQLConnStr))
             {
-                filename_pdb = string.Empty;
-                Query = new StringBuilder(4096);
-                Parameters = new Collection<SqlParameter>();
-
-                Query.AppendLine("SELECT [I].[filename] FROM [Daikatana].[dbo].[tblBuilds] O");
-                Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblDBSymbols] I on ([I].[id]=[O].[id])");
-                Query.AppendLine("WHERE [O].[id]=@id");
-
-                Parameters.Add(clsSQL.BuildSqlParameter("@id", System.Data.SqlDbType.UniqueIdentifier, id));
-                if (!dbSQL.Query(Query.ToString(), Parameters.ToArray()))
+                try
                 {
-                    return string.Empty;
-                }
+                    filename_pdb = string.Empty;
+                    Query = new StringBuilder(4096);
+                    Parameters = new Collection<SqlParameter>();
 
-                if (dbSQL.Read())
-                {
-                    filename_pdb = dbSQL.ReadString(0);
-                    return filename_pdb;
+                    Query.AppendLine("SELECT [I].[filename] FROM [Daikatana].[dbo].[tblBuilds] O");
+                    Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblDBSymbols] I on ([I].[id]=[O].[id])");
+                    Query.AppendLine("WHERE [O].[id]=@id");
+
+                    Parameters.Add(clsSQL.BuildSqlParameter("@id", System.Data.SqlDbType.UniqueIdentifier, id));
+                    if (!dbSQL.Query(Query.ToString(), Parameters.ToArray()))
+                    {
+                        return string.Empty;
+                    }
+
+                    if (dbSQL.Read())
+                    {
+                        filename_pdb = dbSQL.ReadString(0);
+                        return filename_pdb;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                WriteLog("GetPDB(): Bad request from {0} {1}.  Reason: {2}", Request.UserHostAddress, id.ToString(), ex.Message);
+                catch (Exception ex)
+                {
+                    WriteLog("GetPDB(): Bad request from {0} {1}.  Reason: {2}", Request.UserHostAddress, id.ToString(), ex.Message);
+                }
             }
 
             return string.Empty;
         }
 
-        public ActionResult Index (int? type, int? arch, int? beta)
+        public ActionResult Index(int? type, int? arch, int? beta)
         {
             ListViewModel model;
 
