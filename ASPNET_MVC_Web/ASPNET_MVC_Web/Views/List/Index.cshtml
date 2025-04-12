@@ -21,7 +21,7 @@
             <table border="1">
                 <thead>
                     <tr>
-                        @if (Model.ListType == eListType.PAKFiles)
+                        @if (Model.ListType == eListType.PAKFiles || Model.ListType == eListType.PAKFilesWithBeta)
                         {
                             <th>Type</th>
                         }
@@ -30,12 +30,12 @@
                             <th>Architecture</th>
                         }
                         <th>Date</th>
-                        @if (Model.ListType == eListType.WithBeta)
+                        @if (Model.ListType == eListType.WithBeta || Model.ListType == eListType.PAKFilesWithBeta)
                         {
                             <th>Beta</th>
                         }
                         <th>File</th>
-                        @if (Model.ListType != eListType.PAKFiles)
+                        @if (Model.ListType != eListType.PAKFiles && Model.ListType != eListType.PAKFilesWithBeta)
                         {
                             <th>Debug Symbol</th>
                         }
@@ -47,7 +47,7 @@
                         <tr>
                             <td>@listElement.arch</td>
                             <td>@listElement.date</td>
-                            @if (Model.ListType == eListType.WithBeta)
+                            @if (Model.ListType == eListType.WithBeta || Model.ListType == eListType.PAKFilesWithBeta)
                             {
                                <td>
                                @if (listElement.beta == true)
@@ -57,7 +57,7 @@
                                </td>
                             }
                                <td>
-                                   @if (Model.ListType == eListType.PAKFiles)
+                                   @if (Model.ListType == eListType.PAKFiles || Model.ListType == eListType.PAKFilesWithBeta)
                                    {
                                        @Html.ActionLink(listElement.fileName, "Index", "Download", new { _id = listElement.id.ToString(), Type = 2 }, null)
                                    }
@@ -66,7 +66,7 @@
                                        @Html.ActionLink(listElement.fileName, "Index", "Download", new { _id = listElement.id.ToString(), Type = 0 }, null)
                                    }
                                </td>
-                            @if (Model.ListType != eListType.PAKFiles)
+                            @if (Model.ListType != eListType.PAKFiles && Model.ListType != eListType.PAKFilesWithBeta)
                             {
                                 <td>
                                     @if (String.IsNullOrWhiteSpace(listElement.fileNamePDB) == false)

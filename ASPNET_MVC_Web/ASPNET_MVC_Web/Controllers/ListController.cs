@@ -75,9 +75,11 @@ namespace ASPNET_MVC_Web.Controllers
                             Query.AppendLine("ORDER BY [O].[id], [O].[date]");
                             break;
                         case LATESTPAKS:
-                            model.ListType = eListType.PAKFiles;
+                            model.ListType = eListType.PAKFilesWithBeta;
                             Query.AppendLine("SELECT [O].[id], [I].[date], [O].[type], [I].[filename], [O].[beta] FROM [Daikatana].[dbo].[tblPAKsLatest] O");
                             Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblPAKs] I on ([i].[id]=[O].[id])");
+                            GetBeta(ref model, ref searchParams, beta);
+                            Query.AppendLine(searchParams);
                             Query.AppendLine("ORDER BY [O].[id], [I].[date]");
                             break;
                         default:
@@ -133,13 +135,20 @@ namespace ASPNET_MVC_Web.Controllers
                                 model.BinaryList.Add(new clsBinary { id = _id, date = _date, arch = _arch, fileName = filename_build, fileNamePDB = filename_pdb, changes = _changes, beta = _beta });
                                 break;
                             case ALLPAKS:
-                            case LATESTPAKS: /* FS: Intentional fall through. */
                                 _id = dbSQL.ReadGuid(0);
                                 _date = dbSQL.ReadDateTime(1).ToShortDateString();
                                 _arch = dbSQL.ReadString(2);
                                 filename_build = dbSQL.ReadString(3);
                                 _changes = dbSQL.ReadString(4);
                                 model.BinaryList.Add(new clsBinary { id = _id, date = _date, arch = _arch, fileName = filename_build, changes = _changes });
+                                break;
+                            case LATESTPAKS:
+                                _id = dbSQL.ReadGuid(0);
+                                _date = dbSQL.ReadDateTime(1).ToShortDateString();
+                                _arch = dbSQL.ReadString(2);
+                                filename_build = dbSQL.ReadString(3);
+                                _beta = dbSQL.ReadBool(4);
+                                model.BinaryList.Add(new clsBinary { id = _id, date = _date, arch = _arch, fileName = filename_build, changes = _changes, beta = _beta });
                                 break;
                             default:
                                 return false;
@@ -258,9 +267,20 @@ namespace ASPNET_MVC_Web.Controllers
 
             model = new ListViewModel();
 
-            if (beta != null && beta > 0)
+            if ((beta != null && beta > 0) && (type == 2 || type == 4))
             {
-                GetList(ref model, LATESTBUILDS, arch, true);
+                if (type == 2)
+                {
+                    GetList(ref model, LATESTBUILDS, arch, true);
+                }
+                else if (type == 4)
+                {
+                    GetList(ref model, type, arch, true);
+                }
+                else
+                {
+                    GetList(ref model, type, arch, false);
+                }
             }
             else
             {

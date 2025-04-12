@@ -98,20 +98,21 @@ namespace ASPNET_MVC_Web.Controllers
                     switch (pak)
                     {
                         case PAK4:
-                            Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblPAKsLatest] I ON ([I].[id]=[O].[id] AND [I].[type]='pak4.pak')");
+                            Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblPAKsLatest] I ON ([I].[id]=[O].[id] AND [I].[beta]=@beta AND [I].[type]='pak4.pak')");
                             fileName = "pak4.md5";
                             break;
                         case PAK5:
-                            Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblPAKsLatest] I ON ([I].[id]=[O].[id] AND [I].[type]='pak5.pak')");
+                            Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblPAKsLatest] I ON ([I].[id]=[O].[id] AND [I].[beta]=@beta AND [I].[type]='pak5.pak')");
                             fileName = "pak5.md5";
                             break;
                         case PAK6:
-                            Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblPAKsLatest] I ON ([I].[id]=[O].[id] AND [I].[type]='pak6.pak')");
+                            Query.AppendLine("INNER JOIN [Daikatana].[dbo].[tblPAKsLatest] I ON ([I].[id]=[O].[id] AND [I].[beta]=@beta AND [I].[type]='pak6.pak')");
                             fileName = "pak6.md5";
                             break;
                         default:
                             goto errorFile;
                     }
+                    Parameters.Add(clsSQL.BuildSqlParameter("@beta", System.Data.SqlDbType.Bit, _beta));
                     break;
                 default:
                     goto errorFile;
@@ -428,7 +429,7 @@ namespace ASPNET_MVC_Web.Controllers
                     {
                         string typeParam;
 
-                        Query.AppendLine("SELECT  distinct id FROM [Daikatana].[dbo].[tblPAKsLatest]");
+                        Query.AppendLine("SELECT distinct id, beta FROM [Daikatana].[dbo].[tblPAKsLatest]");
                         if (pak == null)
                         {
                             return false;
@@ -449,7 +450,23 @@ namespace ASPNET_MVC_Web.Controllers
                                 return false;
                         }
 
-                        Query.AppendLine("WHERE type=@type");
+                        if (beta == null)
+                        {
+                            Query.AppendLine("WHERE type=@type AND Beta=0");
+                        }
+                        else
+                        {
+                            if ((beta < 0) || (beta == 0))
+                            {
+                                Query.AppendLine("WHERE type=@type AND Beta=0");
+                            }
+                            else
+                            {
+                                Query.AppendLine("WHERE type=@type"); /* FS: Latest release may be newer than beta.  So compare. */
+                                bWantBeta = true;
+                            }
+                        }
+
                         Parameters.Add(clsSQL.BuildSqlParameter("@type", System.Data.SqlDbType.NVarChar, typeParam));
 
                         if (!dbSQL.Query(Query.ToString(), Parameters.ToArray()))
@@ -469,7 +486,7 @@ namespace ASPNET_MVC_Web.Controllers
                         bool _beta;
 
                         _id = dbSQL.ReadGuid(0);
-                        if (type == 0)
+                        if (type == 0 || type == 2)
                             _beta = dbSQL.ReadBool(1);
                         else
                             _beta = false;
@@ -555,7 +572,7 @@ namespace ASPNET_MVC_Web.Controllers
             model = new DownloadViewModel();
             id = string.Empty;
 
-            if ((type != null) && (type > 0))
+            if (type != null)
             {
                 _type = type.Value;
             }

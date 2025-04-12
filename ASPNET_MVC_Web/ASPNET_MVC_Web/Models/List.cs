@@ -9,6 +9,7 @@ namespace ASPNET_MVC_Web.Models
       WithBeta = 1,
       WithDebugSymbols = 1,
       PAKFiles = 2,
+      PAKFilesWithBeta = 3,
    }
 
    public class ListViewModel
